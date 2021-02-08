@@ -16,6 +16,7 @@ The installed removal tools in Windows and Linux (e.g. rm) only delete the conne
 This tool writes a random content to the file and that several times. After that the file is deleted. After that, the file can no longer be reconstructed. 
 
 > Attention, since V is in an early stage, the memory consumption should be monitored.
+There is a file size limit about ~1GB due to byte array size.
 
 ### Usage
 Options:

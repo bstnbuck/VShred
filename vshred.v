@@ -11,21 +11,19 @@ fn shred_dir(dir string, rounds int) bool {
 	for file in files {
 		println('Next file: ' + os.file_name(file))
 		shred_file(file, rounds) or {
-			println("Error while shredding file: "+os.file_name(file))
+			println('Error while shredding file: ' + os.file_name(file))
 			return false
 		}
 		println('Completed!\n')
 	}
 	// remove all dirs recursively
-	os.rmdir_all(os.real_path(dir)) or {
-		println("Error while removing directory: "+err)
-	}
+	os.rmdir_all(os.real_path(dir)) or { println('Error while removing directory: ' + err) }
 	println('Removed directory successfull')
 	return true
 }
 
 fn make_files_list(dir string) []string {
-	println("Entering dir: "+dir)
+	println('Entering dir: ' + dir)
 	// show current list of dir
 	dir_content := os.ls(dir) or { return [] }
 	mut files := []string{}
@@ -43,7 +41,7 @@ fn make_files_list(dir string) []string {
 	return files
 }
 
-fn shred_file(file_str string, rounds int) ?bool{
+fn shred_file(file_str string, rounds int) ?bool {
 	println('Shredding file... ' + file_str)
 	// check correct path
 	file := os.real_path(file_str)
@@ -59,10 +57,10 @@ fn shred_file(file_str string, rounds int) ?bool{
 		for i <= rounds {
 			// overwrite the file i rounds
 			mut random_str := []byte{}
-			for _ in 0..file_len{
+			for _ in 0 .. file_len {
 				random_str << rand.byte()
 			}
-			//write byte instead string -> correct filesize
+			// write byte instead string -> correct filesize
 			if i != rounds {
 				mut f := create(file) ?
 				f.write(random_str) ?
@@ -83,7 +81,7 @@ fn shred_file(file_str string, rounds int) ?bool{
 	println('\nRemoving file...')
 	// remove the file
 	os.rm(file) or {
-		println("Could not remove file")
+		println('Could not remove file')
 		return false
 	}
 	println('Removed file!')
@@ -120,7 +118,7 @@ fn main() {
 		}
 		println('Success! Shredded file: ' + file_name)
 	} else {
-		println("Flags incorrect!")
+		println('Flags incorrect!')
 		println(fp.usage())
 	}
 	println('Closing...')
