@@ -30,7 +30,7 @@ fn make_files_list(dir string) []string {
 	// file for file
 	for content in dir_content {
 		// make correct path and check if is a dir
-		if is_dir(os.join_path(dir, content)) {
+		if os.is_dir(os.join_path(dir, content)) {
 			// recursively add more files of sub-dirs
 			files << make_files_list(os.join_path(dir, content))
 		} else {
@@ -41,6 +41,7 @@ fn make_files_list(dir string) []string {
 	return files
 }
 
+// to handle bigger than 1 GB -> create array with file size - max allowed... -> use write_to() to give position
 fn shred_file(file_str string, rounds int) ?bool {
 	println('Shredding file... ' + file_str)
 	// check correct path
@@ -62,11 +63,11 @@ fn shred_file(file_str string, rounds int) ?bool {
 			}
 			// write byte instead string -> correct filesize
 			if i != rounds {
-				mut f := create(file) ?
+				mut f := os.create(file) ?
 				f.write(random_str) ?
 				f.close()
 			} else {
-				mut f := create(file) ?
+				mut f := os.create(file) ?
 				f.write(nulls_str) ?
 				f.close()
 			}
