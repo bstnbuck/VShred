@@ -10,10 +10,18 @@ fn shred_dir(dir string, rounds int) bool {
 	// remove file for file
 	for file in files {
 		println('Next file: ' + os.file_name(file))
-		shred_file(file, rounds) or {
-			println('Error while shredding file: ' + os.file_name(file))
-			return false
+		if os.file_size(file) <= 900000000 {
+			shred_file(file, rounds) or {
+				println('Error while shredding file: ' + os.file_name(file))
+				return false
+			}
+		} else {
+			shred_big_file(file, rounds) or {
+				println('Error while shredding file: ' + os.file_name(file))
+				return false
+			}
 		}
+
 		println('Completed!\n')
 	}
 	// remove all dirs recursively
@@ -89,6 +97,75 @@ fn shred_file(file_str string, rounds int) ?bool {
 	return true
 }
 
+fn shred_big_file(file_str string, rounds int) ?bool {
+	println('Shredding big file... ' + file_str)
+	// check correct path
+	file := os.real_path(file_str)
+	// get file size
+	mut lens := []int{}
+	file_len := os.file_size(file)
+	mut file_len_temp := 0
+
+	if file_len > 0 {
+		for {
+			if file_len_temp < file_len {
+				lens << file_len_temp
+			} else {
+				lens << file_len
+				break
+			}
+			file_len_temp += 900000000
+		}
+	}
+	println('lens: ' + lens.str())
+
+	mut write_cond := 0
+	for write_cond < lens.len - 1 {
+		if write_cond != 0 {
+			println('\nNext Part...')
+		}
+		mut nulls_str := []byte{}
+		// create new output as zero byte array of file length
+		for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
+			nulls_str << `0`
+		}
+		mut i := 1
+		for i <= rounds {
+			// overwrite the file i rounds
+			mut random_str := []byte{}
+			for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
+				random_str << rand.byte()
+			}
+			// write byte instead string -> correct filesize
+			if i != rounds {
+				mut f := os.create(file) ?
+				f.write_to(lens[write_cond], random_str) ?
+				f.close()
+			} else {
+				mut f := os.create(file) ?
+				f.write_to(lens[write_cond], nulls_str) ?
+				f.close()
+			}
+			if i == 1 {
+				print('Shred round 1')
+			} else {
+				print(' ' + i.str())
+			}
+			i++
+		}
+		write_cond++
+	}
+
+	println('\nRemoving big file...')
+	// remove the file
+	os.rm(file) or {
+		println('Could not remove file')
+		return false
+	}
+	println('Removed big file!')
+	return true
+}
+
 fn main() {
 	// set flags
 	mut fp := flag.new_flag_parser(os.args)
@@ -113,9 +190,16 @@ fn main() {
 		}
 		println('Success! Deleted directory: ' + dir_name)
 	} else if !whole_dir && os.is_file(file_name) {
-		shred_file(file_name, rounds) or {
-			println('Something went wrong...')
-			return
+		if os.file_size(file_name) <= 900000000 {
+			shred_file(file_name, rounds) or {
+				println('Something went wrong...')
+				return
+			}
+		} else {
+			shred_big_file(file_name, rounds) or {
+				println('Something went wrong...')
+				return
+			}
 		}
 		println('Success! Shredded file: ' + file_name)
 	} else {
