@@ -7,7 +7,7 @@
 
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
-* Compile the source code with: ```v vshred.v ``` 
+* Compile the source code with: ```v -autofree -cc [tcc][msvc][gcc] vshred.v ``` 
 * Run it: ```vshred [--dir] [--dir_name "dir-name"] [file_name "file-name"] [--rounds some-int] ```
 
 ## What it is and how to use it
@@ -16,7 +16,6 @@ The installed removal tools in Windows and Linux (e.g. rm) only delete the conne
 This tool writes a random content to the file and that several times. After that the file is deleted. After that, the file can no longer be reconstructed. 
 
 > Attention, since V is in an early stage, the memory consumption should be monitored.
-There is a file size limit about ~2GB due to integer overflow (32 bit) at os.file_size. Files with bigger file size will be deleted without shredding.
 
 ### Usage
 Options:

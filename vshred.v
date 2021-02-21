@@ -1,6 +1,7 @@
 import rand
 import os
 import flag
+import os_stat
 
 fn shred_dir(dir string, rounds int) bool {
 	println('Shredding directory...')
@@ -10,7 +11,11 @@ fn shred_dir(dir string, rounds int) bool {
 	// remove file for file
 	for file in files {
 		println('Next file: ' + os.file_name(file))
-		if os.file_size(file) <= 900000000 {
+		fsize := os_stat.f_size(file) or {
+			println(err)
+			continue
+		}
+		if fsize <= 900000000 {
 			shred_file(file, rounds) or {
 				println('Error while shredding file: ' + os.file_name(file))
 				return false
@@ -55,7 +60,10 @@ fn shred_file(file_str string, rounds int) ?bool {
 	// check correct path
 	file := os.real_path(file_str)
 	// get file size
-	file_len := os.file_size(file)
+	file_len := os_stat.f_size(file) or {
+		println(err)
+		return false
+	}
 	mut nulls_str := []byte{}
 	if file_len > 0 {
 		// create new output as zero byte array of file length
@@ -102,9 +110,12 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 	// check correct path
 	file := os.real_path(file_str)
 	// get file size
-	mut lens := []int{}
-	file_len := os.file_size(file)
-	mut file_len_temp := 0
+	mut lens := []u64{}
+	file_len := os_stat.f_size(file) or {
+		println(err)
+		return false
+	}
+	mut file_len_temp := u64(0)
 
 	if file_len > 0 {
 		for {
@@ -139,11 +150,11 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 			// write byte instead string -> correct filesize
 			if i != rounds {
 				mut f := os.create(file) ?
-				f.write_to(lens[write_cond], random_str) ?
+				f.write_to(int(lens[write_cond]), random_str) ?
 				f.close()
 			} else {
 				mut f := os.create(file) ?
-				f.write_to(lens[write_cond], nulls_str) ?
+				f.write_to(int(lens[write_cond]), nulls_str) ?
 				f.close()
 			}
 			if i == 1 {
@@ -170,7 +181,7 @@ fn main() {
 	// set flags
 	mut fp := flag.new_flag_parser(os.args)
 	fp.application('V-Shred (Securely delete files)')
-	fp.version('v0.0.1alpha')
+	fp.version('v1.0')
 	fp.description('V-Shred securely delete files, you do not need anymore. Files will be written with random and zero bytes')
 	whole_dir := fp.bool('dir', 0, false, 'secure delete whole directory')
 	dir_name := fp.string('dir_name', 0, '', 'name of dir, which should be shred. No empty directories!')
@@ -182,6 +193,8 @@ fn main() {
 		return
 	}
 
+	println("VShred -- secure delete files!")
+
 	// check if flags correct set
 	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) {
 		if !shred_dir(dir_name, rounds) {
@@ -190,7 +203,11 @@ fn main() {
 		}
 		println('Success! Deleted directory: ' + dir_name)
 	} else if !whole_dir && os.is_file(file_name) {
-		if os.file_size(file_name) <= 900000000 {
+		fsize := os_stat.f_size(file_name) or {
+			println(err)
+			return
+		}
+		if fsize <= 900000000 {
 			shred_file(file_name, rounds) or {
 				println('Something went wrong...')
 				return
