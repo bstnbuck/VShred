@@ -149,12 +149,12 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 			}
 			// write byte instead string -> correct filesize
 			if i != rounds {
-				mut f := os.create(file) ?
-				f.write_to(int(lens[write_cond]), random_str) ?
+				mut f := os_stat.create(file) ?
+				f.f_write_to(lens[write_cond], random_str) ?
 				f.close()
 			} else {
-				mut f := os.create(file) ?
-				f.write_to(int(lens[write_cond]), nulls_str) ?
+				mut f := os_stat.create(file) ?
+				f.f_write_to(lens[write_cond], nulls_str) ?
 				f.close()
 			}
 			if i == 1 {
@@ -193,7 +193,7 @@ fn main() {
 		return
 	}
 
-	println("VShred -- secure delete files!")
+	println('VShred -- secure delete files!')
 
 	// check if flags correct set
 	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) {

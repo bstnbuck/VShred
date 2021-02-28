@@ -7,7 +7,7 @@
 
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
-* Compile the source code with: ```v -autofree -cc [tcc][msvc][gcc] vshred.v ``` 
+* Compile the source code with: ```v -autofree -cc [tcc][msvc][gcc] -prod vshred.v ``` 
 * Run it: ```vshred [--dir] [--dir_name "dir-name"] [file_name "file-name"] [--rounds some-int] ```
 
 ## What it is and how to use it
