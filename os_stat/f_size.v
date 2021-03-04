@@ -26,7 +26,6 @@ pub fn f_size(path string) ?u64 {
 	unsafe {
 		$if windows {
 			// the win tcc now supports 64 bit OSes
-
 			$if x64 {
 				mut swin := C.__stat64{}
 				C._wstat64(path.to_wide(), voidptr(&swin))
@@ -47,5 +46,3 @@ pub fn f_size(path string) ?u64 {
 	}
 	return error('Bad OS')
 }
-
-

@@ -1,0 +1,33 @@
+name: VShred
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install V
+      run: |
+        git clone https://github.com/vlang/v
+        cd v
+        make
+    - name: build Blockchain
+      run: ./v/v vshred.v
+  build:
+    runs-on: windows-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: install V
+      run: |
+        git clone https://github.com/vlang/v
+        cd v
+        make
+    - name: build Blockchain
+      run: ./v/v vshred.v

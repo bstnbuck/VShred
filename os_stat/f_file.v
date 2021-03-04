@@ -1,8 +1,8 @@
 module os_stat
 
-
 pub struct File {
-	cfile voidptr // Using void* instead of FILE*
+	cfile voidptr
+	// Using void* instead of FILE*
 pub:
 	fd int
 pub mut:
@@ -25,20 +25,19 @@ pub fn create(path string) ?File {
 }
 
 pub fn (mut f File) f_write_to(pos u64, buf []byte) ?int {
-	$if windows{
+	$if windows {
 		C._fseeki64(f.cfile, pos, C.SEEK_SET)
 		res := int(C.fwrite(buf.data, 1, buf.len, f.cfile))
 		C._fseeki64(f.cfile, 0, C.SEEK_END)
 
 		return res
-	}$else{
+	} $else {
 		C.fseeko64(f.cfile, pos, C.SEEK_SET)
 		res := int(C.fwrite(buf.data, 1, buf.len, f.cfile))
 		C.fseeko64(f.cfile, 0, C.SEEK_END)
-			
+
 		return res
 	}
-
 }
 
 pub fn (mut f File) close() {

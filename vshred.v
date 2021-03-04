@@ -5,9 +5,11 @@ import os_stat
 
 fn shred_dir(dir string, rounds int) bool {
 	println('Shredding directory...')
+
 	// get files to delete
 	files := make_files_list(os.real_path(dir))
 	println(files)
+
 	// remove file for file
 	for file in files {
 		println('Next file: ' + os.file_name(file))
@@ -29,17 +31,20 @@ fn shred_dir(dir string, rounds int) bool {
 
 		println('Completed!\n')
 	}
+
 	// remove all dirs recursively
-	os.rmdir_all(os.real_path(dir)) or { println('Error while removing directory: ' + err) }
+	os.rmdir_all(os.real_path(dir)) or { println('Error while removing directory: ' + err.msg) }
 	println('Removed directory successfull')
 	return true
 }
 
 fn make_files_list(dir string) []string {
 	println('Entering dir: ' + dir)
+
 	// show current list of dir
 	dir_content := os.ls(dir) or { return [] }
 	mut files := []string{}
+
 	// file for file
 	for content in dir_content {
 		// make correct path and check if is a dir
@@ -57,8 +62,10 @@ fn make_files_list(dir string) []string {
 // to handle bigger than 1 GB -> create array with file size - max allowed... -> use write_to() to give position
 fn shred_file(file_str string, rounds int) ?bool {
 	println('Shredding file... ' + file_str)
+
 	// check correct path
 	file := os.real_path(file_str)
+
 	// get file size
 	file_len := os_stat.f_size(file) or {
 		println(err)
@@ -77,6 +84,7 @@ fn shred_file(file_str string, rounds int) ?bool {
 			for _ in 0 .. file_len {
 				random_str << rand.byte()
 			}
+
 			// write byte instead string -> correct filesize
 			if i != rounds {
 				mut f := os.create(file) ?
@@ -96,6 +104,7 @@ fn shred_file(file_str string, rounds int) ?bool {
 		}
 	}
 	println('\nRemoving file...')
+
 	// remove the file
 	os.rm(file) or {
 		println('Could not remove file')
@@ -107,8 +116,10 @@ fn shred_file(file_str string, rounds int) ?bool {
 
 fn shred_big_file(file_str string, rounds int) ?bool {
 	println('Shredding big file... ' + file_str)
+
 	// check correct path
 	file := os.real_path(file_str)
+
 	// get file size
 	mut lens := []u64{}
 	file_len := os_stat.f_size(file) or {
@@ -136,6 +147,7 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 			println('\nNext Part...')
 		}
 		mut nulls_str := []byte{}
+
 		// create new output as zero byte array of file length
 		for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
 			nulls_str << `0`
@@ -147,6 +159,7 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 			for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
 				random_str << rand.byte()
 			}
+
 			// write byte instead string -> correct filesize
 			if i != rounds {
 				mut f := os_stat.create(file) ?
@@ -168,6 +181,7 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 	}
 
 	println('\nRemoving big file...')
+
 	// remove the file
 	os.rm(file) or {
 		println('Could not remove file')

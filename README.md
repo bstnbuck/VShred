@@ -1,5 +1,8 @@
 # VShred
 
+![Build Status](https://github.com/bstnbuck/VShred/workflows/VShred/badge.svg)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://github.com/bstnbuck/VShred/blob/main/LICENSE)
+
 > A simple tool to securely delete files and directorys, implemented in V.
 
 ## Requirements
