@@ -16,6 +16,6 @@ jobs:
       run: |
         git clone https://github.com/vlang/v
         cd v
-        make
-    - name: build Blockchain
+        make -tcc
+    - name: build VShred
       run: ./v/v vshred.v
