@@ -6,7 +6,7 @@ fn C.lstat64(charptr, voidptr) u64
 
 fn C.stat64(charptr, voidptr) u64
 
-fn C._wstat64()
+fn C._wstat64(charptr, voidptr)
 
 struct C.stat {
 	st_size  u64
