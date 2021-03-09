@@ -103,14 +103,14 @@ fn shred_file(file_str string, rounds int) ?bool {
 			i++
 		}
 	}
-	println('\nRemoving file...')
+	print('\nRemoving file... ')
 
 	// remove the file
 	os.rm(file) or {
 		println('Could not remove file')
 		return false
 	}
-	println('Removed file!')
+	println('Done!')
 	return true
 }
 
@@ -180,14 +180,14 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 		write_cond++
 	}
 
-	println('\nRemoving big file...')
+	print('\nRemoving big file... ')
 
 	// remove the file
 	os.rm(file) or {
 		println('Could not remove file')
 		return false
 	}
-	println('Removed big file!')
+	println('Done!')
 	return true
 }
 
@@ -200,7 +200,7 @@ fn main() {
 	whole_dir := fp.bool('dir', 0, false, 'secure delete whole directory')
 	dir_name := fp.string('dir_name', 0, '', 'name of dir, which should be shred. No empty directories!')
 	file_name := fp.string('file_name', 0, '', 'secure delete a file')
-	rounds := fp.int('rounds', 0, 5, 'define how often the file should be overridden')
+	rounds := fp.int('rounds', 0, 5, 'define how often the file should be overridden (> 0)')
 
 	_ := fp.finalize() or {
 		println(fp.usage())
@@ -210,13 +210,13 @@ fn main() {
 	println('VShred -- secure delete files!')
 
 	// check if flags correct set
-	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) {
+	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) && rounds > 0{
 		if !shred_dir(dir_name, rounds) {
 			println('Something went wrong...')
 			return
 		}
 		println('Success! Deleted directory: ' + dir_name)
-	} else if !whole_dir && os.is_file(file_name) {
+	} else if !whole_dir && os.is_file(file_name) && rounds > 0 {
 		fsize := os_stat.f_size(file_name) or {
 			println(err)
 			return
@@ -235,7 +235,10 @@ fn main() {
 		println('Success! Shredded file: ' + file_name)
 	} else {
 		println('Flags incorrect!')
-		println(fp.usage())
+		println('Maybe there is a typo, the file/dir does not exist or \'rounds\' is lower 1\n')
+		if os.input("Show usage? (y/n) ") == "y"{
+			println(fp.usage())
+		}
 	}
-	println('Closing...')
+	println('Bye!')
 }

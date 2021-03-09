@@ -16,7 +16,7 @@
 ## What it is and how to use it
 VShred is a simple tool to safely delete files and entire directories. 
 The installed removal tools in Windows and Linux (e.g. rm) only delete the connection to the OS, but not the content. 
-This tool writes a random content to the file and that several times. After that the file is deleted. After that, the file can no longer be reconstructed. 
+This tool writes a random content to the file and that several times. After that the file is deleted and the file can no longer be reconstructed. 
 
 > Attention, since V is in an early stage, the memory consumption should be monitored.
 
@@ -30,3 +30,5 @@ Options:
     * secure delete a file
 *  --rounds some-int            
     * define how often the file should be overridden
+*  --help -h
+    * show help
