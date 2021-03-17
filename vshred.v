@@ -71,26 +71,26 @@ fn shred_file(file_str string, rounds int) ?bool {
 		println(err)
 		return false
 	}
-	mut nulls_str := []byte{}
+
 	if file_len > 0 {
-		// create new output as zero byte array of file length
-		for _ in 0 .. file_len {
-			nulls_str << `0`
-		}
 		mut i := 1
 		for i <= rounds {
 			// overwrite the file i rounds
-			mut random_str := []byte{}
-			for _ in 0 .. file_len {
-				random_str << rand.byte()
-			}
-
 			// write byte instead string -> correct filesize
 			if i != rounds {
+				mut random_str := []byte{}
+				for _ in 0 .. file_len {
+					random_str << rand.byte()
+				}
 				mut f := os.create(file) ?
 				f.write(random_str) ?
 				f.close()
 			} else {
+				// create new output as zero byte array of file length
+				mut nulls_str := []byte{}
+				for _ in 0 .. file_len {
+					nulls_str << `0`
+				}
 				mut f := os.create(file) ?
 				f.write(nulls_str) ?
 				f.close()
@@ -146,26 +146,27 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 		if write_cond != 0 {
 			println('\nNext Part...')
 		}
-		mut nulls_str := []byte{}
 
-		// create new output as zero byte array of file length
-		for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
-			nulls_str << `0`
-		}
 		mut i := 1
 		for i <= rounds {
 			// overwrite the file i rounds
-			mut random_str := []byte{}
-			for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
-				random_str << rand.byte()
-			}
 
 			// write byte instead string -> correct filesize
 			if i != rounds {
+				mut random_str := []byte{}
+				for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
+					random_str << rand.byte()
+				}
 				mut f := os_stat.create(file) ?
 				f.f_write_to(lens[write_cond], random_str) ?
 				f.close()
 			} else {
+				mut nulls_str := []byte{}
+
+				// create new output as zero byte array of file length
+				for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
+					nulls_str << `0`
+				}
 				mut f := os_stat.create(file) ?
 				f.f_write_to(lens[write_cond], nulls_str) ?
 				f.close()
@@ -194,9 +195,9 @@ fn shred_big_file(file_str string, rounds int) ?bool {
 fn main() {
 	// set flags
 	mut fp := flag.new_flag_parser(os.args)
-	fp.application('V-Shred (Securely delete files)')
-	fp.version('v1.0')
-	fp.description('V-Shred securely delete files, you do not need anymore. Files will be written with random and zero bytes')
+	fp.application('VShred (Securely delete files)')
+	fp.version('v1.1')
+	fp.description('VShred securely delete files, you do not need anymore. Files will be written with random and zero bytes')
 	whole_dir := fp.bool('dir', 0, false, 'secure delete whole directory')
 	dir_name := fp.string('dir_name', 0, '', 'name of dir, which should be shred. No empty directories!')
 	file_name := fp.string('file_name', 0, '', 'secure delete a file')
@@ -209,8 +210,13 @@ fn main() {
 
 	println('VShred -- secure delete files!')
 
+	$if x32 {
+		println('32 bit OSes are not supported yet!')
+		exit(0)
+	}
+
 	// check if flags correct set
-	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) && rounds > 0{
+	if whole_dir && os.is_dir(dir_name) && !os.is_dir_empty(dir_name) && rounds > 0 {
 		if !shred_dir(dir_name, rounds) {
 			println('Something went wrong...')
 			return
@@ -235,8 +241,8 @@ fn main() {
 		println('Success! Shredded file: ' + file_name)
 	} else {
 		println('Flags incorrect!')
-		println('Maybe there is a typo, the file/dir does not exist or \'rounds\' is lower 1\n')
-		if os.input("Show usage? (y/n) ") == "y"{
+		println("Maybe there is a typo, the file/dir does not exist or 'rounds' is lower 1\n")
+		if os.input('Show usage? (y/n) ') == 'y' {
 			println(fp.usage())
 		}
 	}

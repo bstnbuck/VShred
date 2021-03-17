@@ -7,6 +7,7 @@
 
 ## Requirements
 - Installed [V-Compiler](https://github.com/vlang/v)
+- 64 bit OS
 
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
