@@ -2,6 +2,11 @@ import rand
 import os
 import flag
 
+const (
+	// 1MB
+	buffersize = 1048576
+)
+
 fn shred_dir(dir string, rounds int) bool {
 	println('Shredding directory...')
 
@@ -9,27 +14,32 @@ fn shred_dir(dir string, rounds int) bool {
 	files := make_files_list(os.real_path(dir))
 	println(files)
 
-	// remove file for file
+	mut enc_files := []string{}
 	for file in files {
-		println('Next file: ' + os.file_name(file))
-		fsize := os.file_size(file)
-		if fsize <= 900000000 {
-			shred_file(file, rounds) or {
-				println('Error while shredding file: ' + os.file_name(file))
-				return false
-			}
-		} else {
-			shred_big_file(file, rounds) or {
-				println('Error while shredding file: ' + os.file_name(file))
-				return false
-			}
+		new_fname := os.dir(file) + os.path_separator + rand.string(12)
+		os.mv(file, new_fname) or {
+			println('Error while renaming file: ' + os.file_name(file))
+			println(err)
+			return false
 		}
-
-		println('Completed!\n')
+		enc_files << new_fname
 	}
 
-	// remove all dirs recursively
-	os.rmdir_all(os.real_path(dir)) or { println('Error while removing directory: ' + err.msg) }
+	// remove file for file
+	for i, file in enc_files {
+		println('Next file: ' + os.file_name(files[i]))
+		println('Shredding file... ' + files[i])
+		shred_file(file, rounds) or {
+			println('Error while shredding file: ' + os.file_name(files[i]))
+			println(err)
+			return false
+		}
+		println('Completed!\n')
+	}
+	os.rmdir_all(os.real_path(dir)) or {
+		println('Error while removing directory: ' + err.msg)
+		return false
+	}
 	println('Removed directory successfull')
 	return true
 }
@@ -37,145 +47,85 @@ fn shred_dir(dir string, rounds int) bool {
 fn make_files_list(dir string) []string {
 	println('Entering dir: ' + dir)
 
-	// show current list of dir
-	dir_content := os.ls(dir) or { return [] }
+	dir_content := os.ls(dir) or { [] }
 	mut files := []string{}
 
-	// file for file
 	for content in dir_content {
-		// make correct path and check if is a dir
-		if os.is_dir(os.join_path(dir, content)) {
-			// recursively add more files of sub-dirs
-			files << make_files_list(os.join_path(dir, content))
+		fpath := os.join_path(dir, content)
+		if os.is_dir(fpath) {
+			files << make_files_list(fpath)
 		} else {
-			// else file to files
-			files << os.join_path(dir, content)
+			files << fpath
 		}
 	}
 	return files
 }
 
-// to handle bigger than 1 GB -> create array with file size - max allowed... -> use write_to() to give position
 fn shred_file(file_str string, rounds int) ?bool {
-	println('Shredding file... ' + file_str)
-
-	// check correct path
 	file := os.real_path(file_str)
-
-	// get file size
-	file_len := os.file_size(file) 
+	file_len := os.file_size(file)
 
 	if file_len > 0 {
 		mut i := 1
+		mut f := os.create(file) ? // binary write mode
+		mut file_len_temp := u64(0)
+
+		print('Shred rounds $rounds => Working round: ')
 		for i <= rounds {
-			// overwrite the file i rounds
-			// write byte instead string -> correct filesize
-			if i != rounds {
-				mut random_str := []byte{}
-				for _ in 0 .. file_len {
-					random_str << rand.byte()
+			print('$i ')
+			for {
+				// use buffersize for byte array length
+				if (file_len_temp + buffersize) <= file_len && file_len > buffersize {
+					if i != rounds {
+						mut random_bytes := []byte{}
+
+						// create new output as random byte array of buffer size
+						for _ in 0 .. buffersize {
+							random_bytes << rand.byte()
+						}
+						f.write_to(file_len_temp, random_bytes) ?
+					} else {
+						mut nulls_bytes := []byte{}
+
+						// create new output as random byte array of buffer size
+						for _ in 0 .. buffersize {
+							nulls_bytes << `0`
+						}
+						f.write_to(file_len_temp, nulls_bytes) ?
+					}
+					file_len_temp += buffersize
+				} else {
+					if i != rounds {
+						mut random_bytes := []byte{}
+
+						// create new output as random byte array of buffer size
+						for _ in 0 .. file_len - file_len_temp {
+							random_bytes << rand.byte()
+						}
+						f.write_to(file_len_temp, random_bytes) ?
+					} else {
+						mut nulls_bytes := []byte{}
+
+						// create new output as random byte array of buffer size
+						for _ in 0 .. file_len - file_len_temp {
+							nulls_bytes << `0`
+						}
+						f.write_to(file_len_temp, nulls_bytes) ?
+					}
+					file_len_temp = 0
+					break
 				}
-				mut f := os.create(file) ?
-				f.write(random_str) ?
-				f.close()
-			} else {
-				// create new output as zero byte array of file length
-				mut nulls_str := []byte{}
-				for _ in 0 .. file_len {
-					nulls_str << `0`
-				}
-				mut f := os.create(file) ?
-				f.write(nulls_str) ?
-				f.close()
-			}
-			if i == 1 {
-				print('Shred round 1')
-			} else {
-				print(' ' + i.str())
 			}
 			i++
 		}
+		f.close()
+		println('Done')
 	}
-	print('\nRemoving file... ')
+	print('Removing File... ')
 
-	// remove the file
+	// remove file
 	os.rm(file) or {
-		println('Could not remove file')
-		return false
-	}
-	println('Done!')
-	return true
-}
-
-fn shred_big_file(file_str string, rounds int) ?bool {
-	println('Shredding big file... ' + file_str)
-
-	// check correct path
-	file := os.real_path(file_str)
-
-	// get file size
-	mut lens := []u64{}
-	file_len := os.file_size(file) 
-	mut file_len_temp := u64(0)
-
-	if file_len > 0 {
-		for {
-			if file_len_temp < file_len {
-				lens << file_len_temp
-			} else {
-				lens << file_len
-				break
-			}
-			file_len_temp += 900000000
-		}
-	}
-	println('lens: ' + lens.str())
-
-	mut write_cond := 0
-	for write_cond < lens.len - 1 {
-		if write_cond != 0 {
-			println('\nNext Part...')
-		}
-
-		mut i := 1
-		for i <= rounds {
-			// overwrite the file i rounds
-
-			// write byte instead string -> correct filesize
-			if i != rounds {
-				mut random_str := []byte{}
-				for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
-					random_str << rand.byte()
-				}
-				mut f := os.create(file) ?
-				f.write_to(lens[write_cond], random_str) ?
-				f.close()
-			} else {
-				mut nulls_str := []byte{}
-
-				// create new output as zero byte array of file length
-				for _ in 0 .. lens[write_cond + 1] - lens[write_cond] {
-					nulls_str << `0`
-				}
-				mut f := os.create(file) ?
-				f.write_to(lens[write_cond], nulls_str) ?
-				f.close()
-			}
-			if i == 1 {
-				print('Shred round 1')
-			} else {
-				print(' ' + i.str())
-			}
-			i++
-		}
-		write_cond++
-	}
-
-	print('\nRemoving big file... ')
-
-	// remove the file
-	os.rm(file) or {
-		println('Could not remove file')
+		println('Could not remove file: ' + err.msg)
 		return false
 	}
 	println('Done!')
@@ -186,10 +136,10 @@ fn main() {
 	// set flags
 	mut fp := flag.new_flag_parser(os.args)
 	fp.application('VShred (Securely delete files)')
-	fp.version('v1.1')
+	fp.version('v1.2')
 	fp.description('VShred securely delete files, you do not need anymore. Files will be written with random and zero bytes')
 	whole_dir := fp.bool('dir', 0, false, 'secure delete whole directory')
-	dir_name := fp.string('dir_name', 0, '', 'name of dir, which should be shred. No empty directories!')
+	dir_name := fp.string('dir_name', 0, '', 'name of directory, which should be shred. No empty directories!')
 	file_name := fp.string('file_name', 0, '', 'secure delete a file')
 	rounds := fp.int('rounds', 0, 5, 'define how often the file should be overridden (> 0)')
 
@@ -208,17 +158,13 @@ fn main() {
 		}
 		println('Success! Deleted directory: ' + dir_name)
 	} else if !whole_dir && os.is_file(file_name) && rounds > 0 {
-		fsize := os.file_size(file_name) 
-		if fsize <= 900000000 {
-			shred_file(file_name, rounds) or {
-				println('Something went wrong...')
-				return
-			}
-		} else {
-			shred_big_file(file_name, rounds) or {
-				println('Something went wrong...')
-				return
-			}
+		new_fname := os.dir(os.real_path(file_name)) + os.path_separator + rand.string(12)
+		os.mv(file_name, new_fname) ?
+		println('Shredding file... ' + os.file_name(file_name))
+		shred_file(new_fname, rounds) or {
+			println('Something went wrong...')
+			println(err)
+			return
 		}
 		println('Success! Shredded file: ' + file_name)
 	} else {
