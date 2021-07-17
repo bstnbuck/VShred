@@ -7,6 +7,7 @@
 
 ## Requirements
 - Installed [V-Compiler](https://github.com/vlang/v)
+- When using `-gc boehm` install `libgc-dev` on Linux => `apt install libgc-dev`
 
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
@@ -25,7 +26,7 @@ Options:
 * --dir (boolean)                     
     * secure delete whole directory
 *  --dir_name "string"       
-    * name of the directory, which should be recursively shredded. No empty directories!
+    * name of the directory, which should be recursively shredded. No empty directories! Needs `--dir` flag.
 *  --file_name "string"      
     * secure delete a file
 *  --rounds some-int            
