@@ -21,5 +21,3 @@ jobs:
         make
     - name: build VShred
       run: ./v/v vshred.v
-    - name: build VShred with -gc boehm
-      run: ./v/v -gc boehm vshred.v

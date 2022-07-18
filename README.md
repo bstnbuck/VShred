@@ -7,19 +7,16 @@
 
 ## Requirements
 - Installed [V-Compiler](https://github.com/vlang/v)
-- When using `-gc boehm` install `libgc-dev` on Linux => `apt install libgc-dev`
 
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
-* Compile the source code with: ```v -gc boehm -cc [tcc][msvc][gcc] -prod vshred.v ``` 
+* Compile the source code with: ```v -cc [tcc][msvc][gcc] -prod vshred.v ``` 
 * Run it: ```vshred [--dir] [--dir_name "dir-name"] [--file_name "file-name"] [--rounds some-int] ```
 
 ## What it is and how to use it
 VShred is a simple tool to safely delete files and entire directories. 
 The installed removal tools in Windows and Linux (e.g. rm) only delete the connection to the OS, but not the content. 
 This tool writes random content to the file and that several times. After that the file will be renamed and deleted so the file can no longer be reconstructed. 
-
-> Attention, since V´s `autofree` is in an early stage the option `-gc boehm` is highly recommended.
 
 ### Usage
 Options:

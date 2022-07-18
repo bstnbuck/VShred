@@ -37,7 +37,7 @@ fn shred_dir(dir string, rounds int) bool {
 		println('Completed!\n')
 	}
 	os.rmdir_all(os.real_path(dir)) or {
-		println('Error while removing directory: ' + err.msg)
+		println('Error while removing directory: ' + err.msg())
 		return false
 	}
 	println('Removed directory successfull')
@@ -81,7 +81,7 @@ fn shred_file(file_str string, rounds int) ?bool {
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. buffersize {
-							random_bytes << rand.byte()
+							random_bytes << rand.u8()
 						}
 						f.write_to(file_len_temp, random_bytes) ?
 					} else {
@@ -100,7 +100,7 @@ fn shred_file(file_str string, rounds int) ?bool {
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. file_len - file_len_temp {
-							random_bytes << rand.byte()
+							random_bytes << rand.u8()
 						}
 						f.write_to(file_len_temp, random_bytes) ?
 					} else {
@@ -125,7 +125,7 @@ fn shred_file(file_str string, rounds int) ?bool {
 
 	// remove file
 	os.rm(file) or {
-		println('Could not remove file: ' + err.msg)
+		println('Could not remove file: ' + err.msg())
 		return false
 	}
 	println('Done!')
@@ -136,7 +136,7 @@ fn main() {
 	// set flags
 	mut fp := flag.new_flag_parser(os.args)
 	fp.application('VShred (Securely delete files)')
-	fp.version('v1.2')
+	fp.version('v1.2.1')
 	fp.description('VShred securely delete files, you do not need anymore. Files will be written with random and zero bytes')
 	whole_dir := fp.bool('dir', 0, false, 'secure delete whole directory')
 	dir_name := fp.string('dir_name', 0, '', 'name of directory, which should be shred. No empty directories!')
