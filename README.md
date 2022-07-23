@@ -11,7 +11,7 @@
 ## Usage
 * Clone the repository: ```git clone https://github.com/bstnbuck/VShred.git``` 
 * Compile the source code with: ```v -cc [tcc][msvc][gcc] -prod vshred.v ``` 
-* Run it: ```vshred [--dir] [--dir_name "dir-name"] [--file_name "file-name"] [--rounds some-int] ```
+* Run it: ```vshred [--dir] [-d] [--dir_name "dir-name"] [--file_name "file-name"] [--rounds some-int] [--continue] [--no_output] [--yes] [-y]```
 
 ## What it is and how to use it
 VShred is a simple tool to safely delete files and entire directories. 
@@ -20,13 +20,19 @@ This tool writes random content to the file and that several times. After that t
 
 ### Usage
 Options:
-* --dir                    
+* --dir -d             
     * secure delete whole directory
 *  --dir_name "string"       
-    * name of the directory, which should be recursively shredded. No empty directories! Needs `--dir` flag.
+    * name of the directory, which should be recursively shredded. No empty directories! Needs `--dir -d` flag.
 *  --file_name "string"      
     * secure delete a file
 *  --rounds \<some-int>            
     * define how often the file should be overridden
+* --continue
+    * continue if an error occurs
+* --no_output
+    * show less output
+* --yes -y
+    * no checkbacks
 *  --help -h
     * show help
