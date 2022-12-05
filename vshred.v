@@ -95,7 +95,7 @@ fn make_files_list(dir string, options Options) []string {
 	return files
 }
 
-fn shred_file(file_str string, rounds int, options Options) ? {
+fn shred_file(file_str string, rounds int, options Options) ! {
 	file := os.real_path(file_str)
 	file_len := os.file_size(file)
 
@@ -105,17 +105,17 @@ fn shred_file(file_str string, rounds int, options Options) ? {
 	if file_len > 0 {
 		mut i := 1
 		mut f := os.create(file) or { // binary write mode
-			return error('\tCould not open file: $file\n\tError message: ' + err.msg())
+			return error('\tCould not open file: ${file}\n\tError message: ' + err.msg())
 		}
 
 		mut file_len_temp := u64(0)
 
 		if !options.no_output {
-			print('Shred rounds $rounds => Working round: ')
+			print('Shred rounds ${rounds} => Working round: ')
 		}
 		for i <= rounds {
 			if !options.no_output {
-				print('$i ')
+				print('${i} ')
 			}
 			for {
 				// use buffersize for byte array length
@@ -127,7 +127,7 @@ fn shred_file(file_str string, rounds int, options Options) ? {
 						for _ in 0 .. buffersize {
 							random_bytes << rand.u8()
 						}
-						f.write_to(file_len_temp, random_bytes)?
+						f.write_to(file_len_temp, random_bytes)!
 					} else {
 						mut nulls_bytes := []byte{}
 
@@ -135,7 +135,7 @@ fn shred_file(file_str string, rounds int, options Options) ? {
 						for _ in 0 .. buffersize {
 							nulls_bytes << `0`
 						}
-						f.write_to(file_len_temp, nulls_bytes)?
+						f.write_to(file_len_temp, nulls_bytes)!
 					}
 					file_len_temp += buffersize
 				} else {
@@ -146,7 +146,7 @@ fn shred_file(file_str string, rounds int, options Options) ? {
 						for _ in 0 .. file_len - file_len_temp {
 							random_bytes << rand.u8()
 						}
-						f.write_to(file_len_temp, random_bytes)?
+						f.write_to(file_len_temp, random_bytes)!
 					} else {
 						mut nulls_bytes := []byte{}
 
@@ -154,7 +154,7 @@ fn shred_file(file_str string, rounds int, options Options) ? {
 						for _ in 0 .. file_len - file_len_temp {
 							nulls_bytes << `0`
 						}
-						f.write_to(file_len_temp, nulls_bytes)?
+						f.write_to(file_len_temp, nulls_bytes)!
 					}
 					file_len_temp = 0
 					break
@@ -210,7 +210,7 @@ fn main() {
 		println('Success! Deleted directory: ' + dir_name)
 	} else if !whole_dir && os.is_file(file_name) && rounds > 0 {
 		new_fname := os.dir(os.real_path(file_name)) + os.path_separator + rand.string(12)
-		os.mv(file_name, new_fname)?
+		os.mv(file_name, new_fname)!
 		if !options.no_output {
 			println('Shredding file... ' + os.file_name(file_name))
 		}
@@ -223,7 +223,7 @@ fn main() {
 	} else {
 		println('Flags incorrect!')
 		if !whole_dir && dir_name == '' && os.is_dir(file_name) {
-			println('Hint: \'$file_name\' is a directory.')
+			println('Hint: \'${file_name}\' is a directory.')
 		}
 		println("Maybe there is a typo, the file/dir does not exist or 'rounds' is lower 1\n")
 		if os.input('Show usage? (y/n) ') == 'y' {
