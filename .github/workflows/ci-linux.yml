@@ -6,14 +6,6 @@ on:
   pull_request:
     branches: [ main ]
 
-name: VShred
-
-on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-    
 jobs:
   build:
     runs-on: ubuntu-latest
