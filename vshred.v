@@ -2,10 +2,8 @@ import rand
 import os
 import flag
 
-const (
-	// 1MB
-	buffersize = 1048576
-)
+// 1MB
+const buffersize = 1048576
 
 struct Options {
 	no_stop   bool
@@ -121,7 +119,7 @@ fn shred_file(file_str string, rounds int, options Options) ! {
 				// use buffersize for byte array length
 				if (file_len_temp + buffersize) <= file_len && file_len > buffersize {
 					if i != rounds {
-						mut random_bytes := []byte{}
+						mut random_bytes := []u8{}
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. buffersize {
@@ -129,7 +127,7 @@ fn shred_file(file_str string, rounds int, options Options) ! {
 						}
 						f.write_to(file_len_temp, random_bytes)!
 					} else {
-						mut nulls_bytes := []byte{}
+						mut nulls_bytes := []u8{}
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. buffersize {
@@ -140,7 +138,7 @@ fn shred_file(file_str string, rounds int, options Options) ! {
 					file_len_temp += buffersize
 				} else {
 					if i != rounds {
-						mut random_bytes := []byte{}
+						mut random_bytes := []u8{}
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. file_len - file_len_temp {
@@ -148,7 +146,7 @@ fn shred_file(file_str string, rounds int, options Options) ! {
 						}
 						f.write_to(file_len_temp, random_bytes)!
 					} else {
-						mut nulls_bytes := []byte{}
+						mut nulls_bytes := []u8{}
 
 						// create new output as random byte array of buffer size
 						for _ in 0 .. file_len - file_len_temp {
